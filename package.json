@@ -1,0 +1,17 @@
+{
+  "name": "dolibarr-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server — Dolibarr pour Assistant IA Vincent",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "express": "^4.19.2",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
