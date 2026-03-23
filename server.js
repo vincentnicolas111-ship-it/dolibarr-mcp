@@ -1,6 +1,6 @@
 // MCP Server - Dolibarr
 // Assistant IA - Vincent x Claude
-// Version 1.0 - 2026-03-23
+// Version 1.1 - 2026-03-23
 
 import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -257,20 +257,40 @@ server.tool(
   }
 );
 
-// --- Serveur Express + SSE ---
+// --- Serveur Express + CORS + SSE ---
 
 const app = express();
+
+// CORS - autorise Claude.ai a se connecter
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 
 const transports = new Map();
 
 app.get("/sse", async (req, res) => {
   console.log(`[SSE] Connexion : ${new Date().toISOString()}`);
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+
   const transport = new SSEServerTransport("/messages", res);
   transports.set(transport.sessionId, transport);
+
   res.on("close", () => {
+    console.log(`[SSE] Fermeture : ${transport.sessionId}`);
     transports.delete(transport.sessionId);
   });
+
   await server.connect(transport);
 });
 
@@ -287,7 +307,7 @@ app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     service: "dolibarr-mcp-server",
-    version: "1.0.0",
+    version: "1.1.0",
     timestamp: new Date().toISOString()
   });
 });
